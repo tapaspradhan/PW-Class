@@ -5,6 +5,7 @@ import {config} from "dotenv"
 config();
 import morgan from "morgan";
 import userRoutes from "./routes/user.Routes.js"
+import errorMiddleware from "./middlewares/error.middleware.js";
 
 const app=express(); 
 
@@ -24,5 +25,7 @@ app.use("/api/v1/user",userRoutes)
 app.all("*",(req,res)=>{
     res.status(400).send("OPPS!! 404 Page not found")
 })
+
+app.use(errorMiddleware)
 
 export default app;
