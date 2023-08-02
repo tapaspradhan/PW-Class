@@ -1,5 +1,7 @@
 import User from "../models/user.model.js";
 import AppError from "../utils/error.util.js";
+import cloudinary from "cloudinary";
+import fs from "fs/promises"
 
 const cookieOptions={
     maxage:7*24*60*60*1000,
@@ -25,6 +27,7 @@ const register=async(req,res)=>{
         avatar:{
             public_id:email,
             // secure_url:
+            secure_url:'https://res.cloudinary.com/dklspipgt/image/upload/v1690948884/samples/animals/kitten-playing.gif'
         }
         
     })
@@ -34,6 +37,29 @@ const register=async(req,res)=>{
     }
 
     // TODO: File Upload
+    if(req.file){
+        console.log(req.file);
+        try {
+            const result=await cloudinary.v2.uploader.upload(req.file.path,{
+                folder:"lms",
+                width:250,
+                height:250,
+                gravity:"focus",
+                crop:"fill"
+            });
+            if(result){
+                user.avatar.public_id=result.public_id;
+                user.avatar.secure_url=result.secure_url;
+
+                // Remove file from server
+                fs.rm(`uploads/${req.file.filename}`)
+            }
+        }catch (e) {
+            return next(
+                new AppError(error || "File not uplaod, please try again",500)
+            )
+        }
+    }
 
     await user.save();
 
